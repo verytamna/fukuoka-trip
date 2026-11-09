@@ -161,6 +161,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .toast { position: fixed; left: 50%; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 14px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; white-space: nowrap; }
 .toast.on { opacity: 1; }
 .install { border-style: dashed; }
+.sos { border-color: var(--maple); }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -657,6 +659,32 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       ql.appendChild(btn(null, "🚕 " + q[0], function () { show(i); }));
     });
     qc.appendChild(ql); box.appendChild(qc);
+
+    // 지진 났을 때
+    var ec = el("div", "card sos");
+    ec.appendChild(el("h3", null, "🆘 지진 났을 때"));
+    var ol = el("ol", "steps");
+    ["흔들리는 동안: 머리를 가방·베개로 보호하고 탁자 밑으로. 밖으로 뛰어나가지 않기.",
+     "온천·욕실에 있으면: 바닥이 미끄러우니 일어서지 말고 머리 보호. 유리창에서 떨어지기.",
+     "흔들림이 멈추면: 신발 신고 계단으로 대피. 엘리베이터 금지.",
+     "숙소 직원 안내를 따르고, 휴대폰 경보·Safety tips 앱·NHK 정보 확인.",
+     "기차는 점검으로 멈출 수 있어요. 비행기 날엔 고속버스·택시 대안 생각하기."
+    ].forEach(function (t) { ol.appendChild(el("li", null, t)); });
+    ec.appendChild(ol);
+    var nums = el("div", "links");
+    [["🚑 119 구급·소방", "119"], ["🚓 110 경찰", "110"], ["🇰🇷 영사콜센터 (24시간)", "+82232100404"], ["🧳 일본 관광객 핫라인 (24시간, 한국어)", "05038162787"]].forEach(function (n) {
+      var a = el("a", null, n[0]); a.href = "tel:" + n[1]; nums.appendChild(a);
+    });
+    ec.appendChild(nums);
+    ec.appendChild(el("small", null, "171: 재해용 전언 다이얼 (가족에게 안부 남기기)"));
+    ec.appendChild(el("p", "eyebrow", "보여 주기만 하면 되는 일본어"));
+    var ph = el("div", "links");
+    [["도와주세요", "助けてください"], ["다쳤어요, 구급차 불러 주세요", "けがをしました。\n救急車を呼んでください"], ["대피소가 어디예요?", "避難所は\nどこですか？"], ["한국인이에요, 일본어를 못해요", "韓国人です。\n日本語が話せません"], ["기차가 언제 다시 다녀요?", "電車はいつ\n動きますか？"]].forEach(function (p) {
+      var i = SHOW.push({ sub: p[0], big: p[1], foot: "" }) - 1;
+      ph.appendChild(btn(null, p[0], function () { show(i); }));
+    });
+    ec.appendChild(ph);
+    box.appendChild(ec);
     if (!any) {
       var e = el("div", "card empty");
       e.appendChild(el("p", "muted", "아직 비어 있어요. 아래 \"정보 입력·수정\"에서 숙소와 교통을 넣으면 택시용 주소 카드가 생겨요."));
@@ -765,6 +793,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   /* ============ 체크리스트 ============ */
   var BASE_CHECKS = [
     { id: "visit", text: "Visit Japan Web 입국 등록 (QR)" },
+    { id: "safety", text: "\"Safety tips\" 앱 설치 (지진 경보, 한국어)" },
+    { id: "insure", text: "여행자 보험 (지진·취소 보장 확인)" },
     { id: "yen", text: "엔화 현금 (포장마차·작은 가게는 현금만)" },
     { id: "esim", text: "eSIM 또는 포켓 와이파이" },
     { id: "qr", text: "기차·숙소 바우처를 두 사람 폰에 저장" },
