@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>후쿠오카 여행</title>
+<meta name="description" content="후쿠오카·유후인 여행 앱">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#b8431f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15181e" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="후쿠오카">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root {
+  --bg: #f6f5f2; --surface: #ffffff; --ink: #1e2430; --muted: #5d6573; --line: #e1dfda;
+  --maple: #b8431f; --maple-soft: #f6e4dc; --spring: #2f6f6a; --spring-soft: #e0efed;
+  --amber: #8a5a00; --amber-soft: #f7ecd5;
+  --font: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --tab-h: 62px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15181e; --surface: #1d2129; --ink: #eceae6; --muted: #a3a9b4; --line: #2e333d;
+    --maple: #ef8a64; --maple-soft: #3a2620; --spring: #7cc4bc; --spring-soft: #1b3331;
+    --amber: #e8b75c; --amber-soft: #352b17;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.55;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) max(16px, env(safe-area-inset-right, 0px)) calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 24px) max(16px, env(safe-area-inset-left, 0px));
+}
+main { max-width: 640px; margin: 0 auto; }
+h1, h2, h3 { margin: 0; line-height: 1.3; text-wrap: balance; }
+h1 { font-size: 26px; } h2 { font-size: 20px; } h3 { font-size: 16px; }
+p { margin: 0; }
+a { color: var(--spring); }
+small, .muted { color: var(--muted); }
+small { font-size: 13px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--spring); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.view { display: none; gap: 16px; }
+.view.on { display: grid; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--maple); }
+.empty { border-style: dashed; }
+
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 0 max(4px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(4px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: repeat(5, 1fr);
+}
+nav.tabs button { height: var(--tab-h); background: none; border: 0; display: grid; place-items: center; align-content: center; gap: 2px; font-size: 12px; color: var(--muted); cursor: pointer; }
+nav.tabs button svg { width: 23px; height: 23px; }
+nav.tabs button[aria-selected="true"] { color: var(--maple); font-weight: 700; }
+
+.hero { display: grid; gap: 4px; }
+.now { border-color: var(--maple); background: var(--maple-soft); }
+.now .label { font-size: 12px; font-weight: 700; color: var(--maple); }
+.now strong { font-size: 18px; }
+.count { font-size: 44px; font-weight: 800; color: var(--maple); font-variant-numeric: tabular-nums; line-height: 1.1; }
+
+.daypick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.daypick button { padding: 10px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; display: grid; }
+.daypick button b { font-size: 15px; }
+.daypick button span { font-size: 12px; color: var(--muted); }
+.daypick button[aria-pressed="true"] { border-color: var(--maple); background: var(--maple-soft); }
+.daypick button[aria-pressed="true"] b { color: var(--maple); }
+.tl { list-style: none; margin: 0; padding: 0; display: grid; }
+.tl li { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.tl li:last-child { border-bottom: 0; }
+.tl time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); }
+.tl .what { display: grid; gap: 2px; min-width: 0; }
+.tl li.past { opacity: .45; }
+.tl li.cur { background: var(--maple-soft); margin: 0 -16px; padding-inline: 16px; border-radius: 8px; }
+.tl .ops { display: flex; gap: 4px; }
+.k { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
+.k.eat { background: var(--amber-soft); color: var(--amber); }
+.k.see { background: var(--spring-soft); color: var(--spring); }
+.k.move { background: var(--maple-soft); color: var(--maple); }
+.k.rest { background: var(--line); color: var(--ink); }
+.k.shop { background: var(--amber-soft); color: var(--amber); }
+.tip { font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--amber-soft); }
+.mini { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; color: var(--muted); width: auto; }
+.mini.danger { color: var(--maple); }
+
+input, select, textarea { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 9px 10px; font-size: 16px; min-width: 0; width: 100%; }
+.btn { background: var(--maple); color: #fff; border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 700; cursor: pointer; font-size: 15px; }
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.itemform { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px; }
+.itemform .full { grid-column: 1 / -1; }
+
+/* 가이드 */
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips button { flex: none; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.guide { display: grid; gap: 8px; }
+.g { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 6px; }
+.g-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.g-top small { white-space: nowrap; }
+.g .gtip { font-size: 13px; color: var(--amber); }
+.g .acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.g .acts a, .g .acts button { font-size: 13px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-decoration: none; cursor: pointer; }
+.g .acts .added { color: var(--spring); border-color: var(--spring); }
+
+/* 경비 */
+.sums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sums div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; min-width: 0; }
+.sums span { font-size: 12px; color: var(--muted); }
+.sums strong { font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.over { color: var(--maple); } .under { color: var(--spring); }
+.exp { display: grid; gap: 8px; }
+.exp-row { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.exp-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.exp-in { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 6px; }
+.exp-row input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+.exp-krw { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.exp-krw b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.exp-row.saved { border-color: var(--spring); }
+.addbox { display: grid; grid-template-columns: minmax(0, 1fr) 96px 64px; gap: 6px; }
+.addbox .full { grid-column: 1 / -1; }
+.inline { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.inline input { width: 120px; text-align: right; }
+
+/* 정보 */
+.addr-ja { font-size: 17px; font-weight: 700; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; }
+.links a, .links button { font-size: 14px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-decoration: none; cursor: pointer; }
+.ticket { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font-size: 14px; }
+.ticket b { color: var(--maple); }
+.check { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.check li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.check label { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 2px 0 0; padding: 0; accent-color: var(--spring); }
+.check input:checked + span { color: var(--muted); text-decoration: line-through; }
+.form { display: grid; gap: 12px; }
+.form fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.form legend { font-weight: 700; font-size: 14px; padding: 0 4px; }
+.form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.form label input { color: var(--ink); }
+details summary { cursor: pointer; font-weight: 700; }
+details[open] summary { margin-bottom: 10px; }
+
+dialog { border: 0; padding: 0; margin: 0; inset: 0; max-width: none; max-height: none; width: 100vw; height: 100dvh; background: #fff; color: #111; }
+dialog::backdrop { background: rgba(0,0,0,.5); }
+.show { height: 100%; display: grid; align-content: center; gap: 18px; padding: 24px; text-align: center; }
+.show .ja-big { font-size: clamp(30px, 9vw, 52px); font-weight: 800; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; white-space: pre-line; }
+.show .ja-sub { font-size: 20px; }
+.show .close { justify-self: center; background: #111; color: #fff; }
+.toast { position: fixed; left: 50%; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 14px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; white-space: nowrap; }
+.toast.on { opacity: 1; }
+.install { border-style: dashed; }
+</style>
+</head>
+<body>
+<main>
+
+<section class="view" id="v-today" aria-labelledby="h-today">
+  <div class="hero">
+    <p class="eyebrow">FUKUOKA · YUFUIN</p>
+    <h1 id="h-today">후쿠오카 여행</h1>
+    <small id="hero-sub"></small>
+  </div>
+  <div id="today-box"></div>
+  <div class="card install" id="install-card" hidden>
+    <h3>홈 화면에 추가하기</h3>
+    <p id="install-text" class="muted"></p>
+    <button class="btn" id="install-btn" hidden>앱 설치</button>
+  </div>
+</section>
+
+<section class="view" id="v-plan" aria-labelledby="h-plan">
+  <h2 id="h-plan">내 일정</h2>
+  <div class="daypick" role="group" aria-label="날짜 고르기" id="daypick"></div>
+  <div class="card" id="plan-box"></div>
+  <div class="card">
+    <h3 id="item-form-title">일정 추가</h3>
+    <form class="itemform" id="item-form" autocomplete="off">
+      <input type="time" name="t" aria-label="시간">
+      <select name="k" aria-label="종류"><option value="see">보기</option><option value="eat">먹기</option><option value="shop">쇼핑</option><option value="move">이동</option><option value="rest">쉬기</option></select>
+      <input class="full" type="text" name="title" maxlength="60" placeholder="할 일 (예: 오호리 공원 산책)" aria-label="할 일" required>
+      <input class="full" type="text" name="note" maxlength="120" placeholder="메모 (선택)" aria-label="메모">
+      <button class="btn full" type="submit" id="item-submit">추가</button>
+      <button class="btn ghost full" type="button" id="item-cancel" hidden>수정 취소</button>
+    </form>
+  </div>
+  <div class="card empty">
+    <small>뭘 할지 모르겠으면 "가이드" 탭에서 골라 "+ 일정"을 누르거나, 추천 일정을 한 번에 넣어 보세요.</small>
+    <button class="btn ghost" type="button" id="tpl-btn">이 날에 추천 일정 넣기</button>
+  </div>
+</section>
+
+<section class="view" id="v-guide" aria-labelledby="h-guide">
+  <h2 id="h-guide">후쿠오카 가이드</h2>
+  <input type="search" id="g-q" placeholder="검색 (예: 라멘, 단풍, 신사)" aria-label="가이드 검색">
+  <div class="chips" role="group" aria-label="분류" id="g-chips"></div>
+  <div class="guide" id="g-list"></div>
+  <small>영업시간과 휴무일은 바뀔 수 있어요. 가기 전에 "지도"에서 한 번 확인하세요.</small>
+</section>
+
+<section class="view" id="v-money" aria-labelledby="h-money">
+  <h2 id="h-money">여행 경비</h2>
+  <div class="sums" aria-live="polite">
+    <div><span>예산</span><strong id="s-plan">–</strong></div>
+    <div><span>쓴 돈</span><strong id="s-act">–</strong></div>
+    <div><span>남은 예산</span><strong id="s-diff">–</strong></div>
+  </div>
+  <div class="card">
+    <h3>쓴 돈 추가</h3>
+    <form class="addbox" id="add-form">
+      <input class="full" id="add-label" type="text" maxlength="40" placeholder="예: 숙소, 기차표, 모츠나베 저녁" aria-label="항목 이름" required>
+      <input id="add-amount" type="number" inputmode="numeric" min="0" step="1" placeholder="금액" aria-label="금액">
+      <select id="add-cur" aria-label="통화"><option value="JPY">¥</option><option value="KRW">₩</option></select>
+      <button class="btn" type="submit">추가</button>
+    </form>
+  </div>
+  <div class="exp" id="exp-list"></div>
+  <div class="card">
+    <div class="inline"><label for="budget">예산</label><input id="budget" type="number" inputmode="numeric" min="0" step="1000" placeholder="원"><span>원</span></div>
+    <div class="inline"><label for="rate">환율 ¥1 =</label><input id="rate" type="number" inputmode="decimal" min="1" max="20" step="0.01"><span>원</span></div>
+    <div class="row2">
+      <button class="btn ghost" id="share-btn" type="button">정리해서 공유</button>
+      <button class="btn ghost" id="reset-btn" type="button">모두 지우기</button>
+    </div>
+    <small>금액은 이 휴대폰에만 저장돼요.</small>
+  </div>
+</section>
+
+<section class="view" id="v-info" aria-labelledby="h-info">
+  <h2 id="h-info">내 여행 정보</h2>
+  <div id="info-cards" style="display:grid;gap:16px"></div>
+
+  <details class="card" id="info-edit">
+    <summary>✏️ 정보 입력·수정</summary>
+    <form class="form" id="info-form" autocomplete="off">
+      <small>여기 적은 내용은 이 휴대폰에만 저장되고 인터넷에 올라가지 않아요. 비워 둬도 돼요.</small>
+      <fieldset><legend>여행</legend>
+        <label>여행 이름<input type="text" name="title" maxlength="40" placeholder="후쿠오카 여행"></label>
+        <label>출발일 (1일차)<input type="date" name="start"></label>
+      </fieldset>
+      <fieldset><legend>1박째 숙소</legend>
+        <label>이름<input type="text" name="h1name" maxlength="60"></label>
+        <label>택시용 일본어 이름<input type="text" name="h1ja" maxlength="60" lang="ja"></label>
+        <label>일본어 주소<input type="text" name="h1addr" maxlength="80" lang="ja"></label>
+        <label>전화<input type="tel" name="h1tel" maxlength="20"></label>
+        <label>메모 (체크인 시간 등)<input type="text" name="h1note" maxlength="80"></label>
+      </fieldset>
+      <fieldset><legend>2박째 숙소</legend>
+        <label>이름<input type="text" name="h2name" maxlength="60"></label>
+        <label>택시용 일본어 이름<input type="text" name="h2ja" maxlength="60" lang="ja"></label>
+        <label>일본어 주소<input type="text" name="h2addr" maxlength="80" lang="ja"></label>
+        <label>전화<input type="tel" name="h2tel" maxlength="20"></label>
+        <label>메모<input type="text" name="h2note" maxlength="80"></label>
+      </fieldset>
+      <fieldset><legend>교통</legend>
+        <label>가는 편 (비행기·기차·좌석)<input type="text" name="go" maxlength="80"></label>
+        <label>중간 이동<input type="text" name="mid" maxlength="80"></label>
+        <label>오는 편<input type="text" name="back" maxlength="80"></label>
+      </fieldset>
+      <button class="btn" type="submit">저장</button>
+    </form>
+    <div class="form" style="margin-top:16px">
+      <fieldset><legend>다른 폰과 맞추기</legend>
+        <small>"코드 보내기"로 카톡에 보내고, 받은 폰에서 아래 칸에 붙여 넣으세요. 정보와 일정이 함께 옮겨져요.</small>
+        <button class="btn ghost" type="button" id="code-out">코드 보내기</button>
+        <textarea id="code-in" rows="3" placeholder="받은 코드 붙여 넣기" aria-label="받은 코드"></textarea>
+        <button class="btn ghost" type="button" id="code-load">불러오기</button>
+      </fieldset>
+    </div>
+  </details>
+
+  <div class="card">
+    <h3>준비물 체크</h3>
+    <ul class="check" id="check-list"></ul>
+    <form class="addbox" id="check-form" style="grid-template-columns:minmax(0,1fr) auto">
+      <input type="text" id="check-new" maxlength="60" placeholder="체크할 것 추가" aria-label="체크할 것" required>
+      <button class="btn" type="submit">추가</button>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<nav class="tabs" role="tablist" aria-label="화면">
+  <button role="tab" data-tab="today" aria-controls="v-today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>오늘</button>
+  <button role="tab" data-tab="plan" aria-controls="v-plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>일정</button>
+  <button role="tab" data-tab="guide" aria-controls="v-guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>가이드</button>
+  <button role="tab" data-tab="money" aria-controls="v-money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg>경비</button>
+  <button role="tab" data-tab="info" aria-controls="v-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg>정보</button>
+</nav>
+
+<dialog id="show" aria-label="큰 글씨로 보기">
+  <div class="show">
+    <p class="ja-sub" id="show-sub"></p>
+    <p class="ja-big" id="show-big"></p>
+    <p class="ja-sub" id="show-foot"></p>
+    <button class="btn close" type="button" id="show-close">닫기</button>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { toast("이 브라우저에서는 저장이 막혀 있어요"); return false; } }
+  };
+  function toast(t) { var e = $("toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove("on"); }, 2000); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function btn(cls, text, fn) { var b = el("button", cls, text); b.type = "button"; if (fn) b.addEventListener("click", fn); return b; }
+  function mapUrl(q) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q); }
+  function confirmTap(b, label, fn) {
+    if (b.dataset.c !== "1") { b.dataset.c = "1"; var old = b.textContent; b.textContent = label; setTimeout(function () { b.dataset.c = ""; b.textContent = old; }, 3000); return; }
+    fn();
+  }
+
+  /* ============ 가이드 데이터 (일반 정보) ============ */
+  // [분류, 지역, 이름, 지도 검색어, 설명, 팁, 걸리는 시간]
+  var CATS = [["all", "전체"], ["nov", "11월 한정"], ["see", "볼거리"], ["eat", "맛집"], ["shop", "쇼핑"], ["yufu", "유후인"], ["trip", "근교"]];
+  var G = [
+    ["nov", "하카타", "오즈모 규슈 바쇼 (스모 대회)", "福岡国際センター", "1년에 한 번 후쿠오카에서 열리는 프로 스모 본대회. 2026년은 11/8–22.", "예매표는 매진됐어요. 당일표는 대회 공식 안내를 확인하세요. 못 가면 ABEMA 무료 중계.", "반나절"],
+    ["nov", "하카타역", "하카타역 크리스마스 마켓", "JR博多シティ 博多駅前広場", "역 앞 광장에 독일식 크리스마스 마켓과 조명. 따뜻한 와인과 소시지.", "2026년 11/7–12/25. 평일 16시, 주말 12시부터 23시까지.", "1시간"],
+    ["nov", "오호리", "오호리 공원 일본 정원 단풍", "大濠公園日本庭園", "연못과 다리가 있는 일본식 정원. 11월 중순부터 단풍이 들어요.", "월요일 휴원 (공휴일이면 다음 날).", "1시간"],
+    ["nov", "조난구", "유센테이 공원 단풍", "友泉亭公園", "옛 영주 별장 정원. 다다미방에서 말차를 마시며 단풍 구경.", "보통 11월 말–12월 초가 절정. 시내에서 버스 20–30분.", "1시간"],
+    ["nov", "다자이후", "고묘젠지 단풍", "光明禅寺", "다자이후 텐만구 옆의 이끼와 돌 정원 절. 단풍 명소.", "다자이후 갈 때 같이 들르세요.", "30분"],
+    ["nov", "이토시마", "라이잔 센뇨지 대단풍", "雷山千如寺大悲王院", "수령 약 400년 큰 단풍나무가 있는 산사. 11월 중하순이 절정.", "대중교통이 불편해 차가 있을 때 추천.", "2시간"],
+
+    ["see", "오호리", "오호리 공원", "大濠公園", "도심 속 큰 호수 공원. 둘레 2km 산책길과 오리배, 호숫가 카페.", "지하철 오호리코엔역 바로 앞.", "1–2시간"],
+    ["see", "오호리", "후쿠오카성 터 (마이즈루 공원)", "福岡城跡 天守台", "성벽 위 천수대에 오르면 시내가 한눈에 보여요.", "오호리 공원 바로 옆이라 같이 돌기 좋아요.", "1시간"],
+    ["see", "오호리", "후쿠오카시 미술관", "福岡市美術館", "오호리 공원 안 미술관. 쿠사마 야요이 호박 작품, 달리, 미로.", "월요일 휴관.", "1–2시간"],
+    ["see", "하카타", "쿠시다 신사", "櫛田神社", "하카타의 수호 신사. 축제용 거대 장식 가마(야마카사)를 1년 내내 볼 수 있어요.", "캐널시티에서 걸어서 5분.", "30분"],
+    ["see", "하카타", "도초지 (후쿠오카 대불)", "東長寺", "높이 약 10m 목조 좌불이 있는 절. 붉은 오층탑도 예뻐요.", "불상 앞은 촬영 금지. 지하철 기온역 근처.", "30분"],
+    ["see", "하카타", "쇼후쿠지", "聖福寺", "일본 최초의 선종 사찰. 관광객이 적어 조용히 산책하기 좋아요.", "도초지에서 걸어서 5분.", "30분"],
+    ["see", "하카타", "가와바타 상점가", "上川端商店街", "100년 넘은 아케이드 상점가. 단팥죽(젠자이) 집과 옛날 가게들.", "쿠시다 신사와 캐널시티 사이.", "30분"],
+    ["see", "하카타", "하카타 마치야 후루사토관", "博多町家ふるさと館", "옛 하카타 상인 집과 전통 공예(하카타 인형, 직물) 체험.", "쿠시다 신사 바로 앞.", "40분"],
+    ["see", "나카스", "나카스 강변 야경", "中洲 那珂川", "강물에 비치는 네온과 포장마차 불빛. 후쿠오카 밤 풍경의 대표.", "해 진 뒤 18시 이후.", "30분"],
+    ["see", "하카타", "캐널시티 하카타", "キャナルシティ博多", "운하가 흐르는 대형 쇼핑몰. 분수쇼와 밤 프로젝션 쇼.", "분수쇼는 보통 30분마다.", "1–2시간"],
+    ["see", "모모치", "후쿠오카 타워", "福岡タワー", "234m 바닷가 전망 타워. 해 질 녘과 야경이 특히 예뻐요.", "여권을 보여 주면 외국인 할인이 있어요. 텐진에서 버스 약 25분.", "1시간"],
+    ["see", "모모치", "모모치 해변", "シーサイドももち海浜公園", "타워 앞 인공 해변. 바다 위 건물(마리존) 앞에서 사진.", "후쿠오카 타워와 묶어서.", "30분"],
+    ["see", "니시구", "아타고 신사", "愛宕神社 福岡", "언덕 위 신사. 후쿠오카 시내와 하카타만이 한눈에 보이는 전망 명소.", "지하철 무로미역에서 걸어서 약 15분, 오르막.", "1시간"],
+    ["see", "텐진", "오픈탑 버스", "福岡オープントップバス", "지붕 없는 2층 버스로 시내 명소를 한 바퀴. 야경 코스도 있어요.", "추운 밤엔 겉옷 필수.", "1시간"],
+    ["see", "하카타", "라라포트 실물 크기 건담", "ららぽーと福岡", "약 20m 높이 뉴건담 입상. 밤에는 조명과 연출.", "하카타역에서 버스 약 20분.", "1시간"],
+    ["see", "니시구", "노코노시마 아일랜드 파크", "のこのしまアイランドパーク", "페리 10분 거리 섬의 꽃밭 공원. 바다를 보며 산책.", "메이노하마 항에서 페리. 반나절 잡으세요.", "반나절"],
+    ["see", "히가시구", "우미노나카미치 해변 공원", "海の中道海浜公園", "아주 넓은 바닷가 공원. 자전거를 빌려 달리기 좋아요.", "하카타역에서 JR 약 30분.", "반나절"],
+
+    ["eat", "나카스", "이치란 본점", "一蘭 本社総本店", "1인 칸막이 자리에서 먹는 돈코츠 라멘. 24시간.", "주문 용지로 맵기·면 굵기를 골라요.", "40분"],
+    ["eat", "텐진", "신신 라멘", "博多らーめん ShinShin 天神本店", "현지인이 많이 가는 가는 면 돈코츠 라멘. 국물이 깔끔해요.", "저녁엔 줄이 길어요.", "40분"],
+    ["eat", "하카타역", "하카타 잇소", "博多一双 博多駅東本店", "거품 낀 진한 돈코츠 국물로 유명.", "늘 줄이 있어요. 오픈 시간에 맞춰 가세요.", "1시간"],
+    ["eat", "나가하마", "원조 나가하마야", "元祖長浜屋", "메뉴가 라멘 하나뿐인 오래된 노포. 싸고 빨라요.", "면 '카타(꼬들)' 주문, 면 추가(가에다마)도 가능.", "30분"],
+    ["eat", "텐진", "모츠나베 라쿠텐치", "博多もつ鍋 楽天地", "간장 국물에 양배추를 산처럼 쌓은 곱창전골. 마지막에 짬뽕면.", "여러 지점이 있어요.", "1시간 30분"],
+    ["eat", "하카타", "모츠나베 오야마", "もつ鍋おおやま", "된장(미소) 맛 모츠나베로 유명한 집.", "하카타역 빌딩 안 지점이 편해요.", "1시간 30분"],
+    ["eat", "나카스", "미즈타키 하카타 하나미도리", "博多華味鳥", "닭 육수를 진하게 우린 하카타식 닭 전골. 마지막에 죽(조스이).", "추운 11월 저녁에 딱.", "1시간 30분"],
+    ["eat", "나카스", "원조 하카타 멘타이쥬", "元祖博多めんたい重", "명란 한 줄을 통째로 올린 덮밥. 아침 일찍 열어요.", "점심엔 줄이 길어서 아침 추천.", "1시간"],
+    ["eat", "다이묘", "덴푸라 히라오", "天ぷらひらお", "튀기는 즉시 한 개씩 내주는 저렴한 덴푸라 정식. 오징어젓 무료.", "식권 자판기로 주문. 회전이 빨라요.", "40분"],
+    ["eat", "텐진", "효탄 스시", "ひょうたん寿司", "텐진의 인기 초밥집. 회전초밥 지점도 있어요.", "오픈 전에 줄 서는 경우가 많아요.", "1시간"],
+    ["eat", "나카스", "하카타 한입 교자 (데쓰나베)", "博多祇園鉄なべ", "뜨거운 철판째 나오는 한입 크기 교자. 맥주 안주.", "", "1시간"],
+    ["eat", "나카스·텐진", "포장마차 (야타이)", "中洲屋台", "강변·길가 포장마차에서 라멘, 야키토리, 오뎅.", "현금 준비. 자리가 좁으니 오래 앉지 않는 게 매너.", "1시간"],
+    ["eat", "어디서나", "고마사바 (참깨 고등어)", "ごまさば", "신선한 고등어회를 참깨 간장에 버무린 후쿠오카 향토 요리.", "이자카야 메뉴에서 찾아보세요.", ""],
+    ["eat", "어디서나", "마키노 우동", "牧のうどん", "아주 부드러운 면의 후쿠오카식 우동. 면이 국물을 계속 먹어요.", "국물 추가 주전자를 줘요.", "30분"],
+    ["eat", "텐진", "팡스톡 (명란 바게트)", "パンストック 天神店", "명란 바게트 '멘타이 프랑스'로 유명한 빵집.", "오후엔 품절되기 쉬워요.", "20분"],
+    ["eat", "하카타", "하카타 야키토리", "博多 焼き鳥", "후쿠오카 야키토리는 돼지 삼겹(바라)과 양배추 초간장이 기본.", "", "1시간"],
+
+    ["shop", "텐진", "텐진 지하상가", "天神地下街", "유럽풍 지하 쇼핑가. 옷, 잡화, 카페 150여 곳.", "비 오는 날 이동 통로로도 좋아요.", "1시간"],
+    ["shop", "다이묘", "다이묘 거리", "大名 福岡", "편집숍, 빈티지 옷가게, 카페가 모인 골목.", "", "1–2시간"],
+    ["shop", "하카타역", "아뮤플라자 하카타 · 한큐", "アミュプラザ博多", "하카타역 쇼핑 빌딩. 옥상 정원에서 기차 구경.", "", "1–2시간"],
+    ["shop", "하카타역", "하카타역 기념품 거리 (마잉구)", "博多駅 マイング", "후쿠오카 기념품 집합소. 하카타 토리몬, 히요코, 명란.", "귀국 날 마지막 쇼핑에 딱.", "40분"],
+    ["shop", "나카스", "돈키호테 나카스", "ドン・キホーテ 中洲店", "24시간 할인 잡화점. 과자, 화장품, 약. 면세 가능.", "여권 챙기기.", "1시간"],
+    ["shop", "텐진", "이와타야 백화점 지하 식품관", "岩田屋本店", "텐진 백화점. 지하 식품관에서 디저트와 선물용 과자.", "", "1시간"],
+    ["shop", "기념품", "명란 (멘타이코)", "ふくや 明太子", "후쿠오카 대표 기념품. 튜브형은 들고 가기 편해요.", "생 명란은 기내 반입 규정 확인.", ""],
+
+    ["yufu", "유후인", "긴린코 호수 아침 안개", "金鱗湖", "추운 아침 호수에서 김이 피어올라요. 11월 아침이 딱 좋은 때.", "해 뜰 무렵 6:30–8시. 낮의 단풍과 해 질 녘도 예뻐요.", "40분"],
+    ["yufu", "유후인", "유노쓰보 거리", "湯の坪街道", "역에서 긴린코까지 이어지는 상점 거리. 군것질 천국.", "가게들이 17시쯤 닫아요.", "2시간"],
+    ["yufu", "유후인", "금상 고로케", "金賞コロッケ", "품평회에서 상을 받은 고로케. 걸으면서 먹기.", "", "15분"],
+    ["yufu", "유후인", "B-speak 롤케이크", "B-speak", "유후인 대표 디저트 롤케이크. 오후엔 품절되기 쉬워요.", "", "15분"],
+    ["yufu", "유후인", "밀히 치즈케이크·푸딩", "ミルヒ 湯布院", "따뜻한 치즈케이크와 푸딩.", "", "15분"],
+    ["yufu", "유후인", "분고규 (오이타 소고기)", "豊後牛 湯布院", "오이타 브랜드 소고기. 꼬치, 고로케, 덮밥으로.", "", "30분"],
+    ["yufu", "유후인", "유후인 플로럴 빌리지", "湯布院フローラルヴィレッジ", "영국 시골 마을 콘셉트 거리. 작은 동물과 아기자기한 가게.", "", "40분"],
+    ["yufu", "유후인", "붓산지", "佛山寺 由布市", "긴린코 근처 이끼 낀 조용한 절. 사람이 적어요.", "", "20분"],
+    ["yufu", "유후인", "유후인역과 유후다케", "由布院駅", "역 앞에서 정면으로 보이는 유후다케 산. 역 건물도 예뻐요.", "", "10분"],
+    ["yufu", "벳푸", "벳푸 지옥 순례", "別府地獄めぐり", "색이 다른 온천 연못 7곳을 도는 코스. 파란 '바다 지옥'이 유명.", "유후인에서 버스 약 50분. 시간이 남으면.", "반나절"],
+
+    ["trip", "다자이후", "다자이후 텐만구", "太宰府天満宮", "학문의 신을 모신 신사. 참배길 매화떡(우메가에모치)과 구마 겐고 스타벅스.", "텐진에서 니시테츠 전철 약 30분.", "반나절"],
+    ["trip", "다자이후", "규슈 국립박물관", "九州国立博物館", "다자이후 텐만구 뒤편 유리 건물 박물관.", "월요일 휴관.", "1–2시간"],
+    ["trip", "사사구리", "난조인 와불", "南蔵院", "길이 약 41m 청동 누운 부처.", "하카타에서 JR로 약 25분.", "2시간"],
+    ["trip", "야나기가와", "야나기가와 뱃놀이", "柳川 川下り", "수로를 따라 나룻배를 타고 도는 물의 도시. 장어 찜밥(세이로무시).", "텐진에서 니시테츠 전철 약 50분.", "반나절"],
+    ["trip", "이토시마", "이토시마 후타미가우라", "二見ヶ浦 夫婦岩", "바다 위 부부 바위와 하얀 도리이. 해변 카페 드라이브 코스.", "차가 있으면 편해요.", "반나절"],
+    ["trip", "기타큐슈", "모지코 레트로", "門司港レトロ", "다이쇼 시대 항구 거리. 명물 야키카레.", "하카타에서 1시간 넘게 걸려 하루 코스.", "하루"]
+  ];
+
+  /* ============ 추천 일정 (버튼으로만 넣어요) ============ */
+  var TPL = [
+    [["08:30","move","공항 도착","입국심사, 짐 찾기 1시간"],["09:40","move","공항 → 텐진","버스 30–40분 또는 지하철"],["10:30","rest","숙소에 짐 맡기기",""],["10:45","eat","원조 하카타 멘타이쥬","명란 덮밥"],["12:00","see","다이묘 거리 산책","카페 한 잔"],["13:30","see","오호리 공원 + 후쿠오카성 터","월요일엔 일본 정원 휴원"],["15:30","rest","숙소 체크인",""],["17:30","eat","저녁: 모츠나베",""],["19:30","eat","나카스 포장마차","현금 준비"],["21:00","see","캐널시티 / 이치란 본점","선택"]],
+    [["08:30","eat","아침",""],["10:00","shop","체크아웃 → 텐진 지하상가",""],["11:20","move","텐진 → 하카타역","지하철 6분"],["11:35","eat","에키벤(기차 도시락) 사기",""],["12:14","move","특급 유후 하카타 → 유후인","바우처 QR로 개찰구 통과"],["14:39","move","유후인역 도착 → 코인로커",""],["14:50","eat","유노쓰보 거리 군것질","17시쯤 닫아요"],["16:15","see","긴린코 호수 · 해 질 녘",""],["17:30","eat","저녁: 분고규·토리텐","식당이 일찍 닫아요"],["18:40","shop","편의점: 맥주, 야식, 아침거리",""],["19:00","move","택시로 숙소",""],["19:30","rest","온천",""]],
+    [["06:30","rest","아침 온천",""],["07:00","see","긴린코 아침 안개","해 뜰 무렵"],["07:45","eat","아침, 짐 정리",""],["08:30","move","체크아웃 → 택시로 유후인역",""],["09:08","move","특급 유후 유후인 → 하카타",""],["11:20","move","하카타역 도착","짐은 코인로커"],["11:30","eat","점심: 라멘 또는 미즈타키",""],["12:30","shop","하카타역 기념품",""],["13:15","move","지하철 → 공항 국제선","셔틀까지 30분"],["14:00","move","출국 수속 · 면세점",""]]
+  ];
+  var KIND = { eat: "먹기", see: "보기", shop: "쇼핑", move: "이동", rest: "쉬기" };
+
+  /* ============ 저장된 내 데이터 ============ */
+  var INFO_KEYS = ["title", "start", "h1name", "h1ja", "h1addr", "h1tel", "h1note", "h2name", "h2ja", "h2addr", "h2tel", "h2note", "go", "mid", "back"];
+  var info = LS.get("fk-info", {});
+  var plan = LS.get("fk-plan", null) || [[], [], []];
+  function savePlan() { LS.set("fk-plan", plan); }
+  function sortDay(d) { plan[d].sort(function (a, b) { return (a.t || "99:99") < (b.t || "99:99") ? -1 : (a.t || "99:99") > (b.t || "99:99") ? 1 : 0; }); }
+
+  function tripDates() {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(info.start || "")) return null;
+    var base = Date.parse(info.start + "T00:00:00Z");
+    return [0, 1, 2].map(function (i) { return new Date(base + i * 864e5).toISOString().slice(0, 10); });
+  }
+  var WD = ["일", "월", "화", "수", "목", "금", "토"];
+  function dayLabel(i) {
+    var d = tripDates(); if (!d) return (i + 1) + "일차";
+    var dt = new Date(d[i] + "T00:00:00Z");
+    return (dt.getUTCMonth() + 1) + "/" + dt.getUTCDate() + " " + WD[dt.getUTCDay()];
+  }
+  // 한국과 일본은 같은 시간대(UTC+9)
+  function nowJst() { var d = new Date(Date.now() + 9 * 3600e3); return { date: d.toISOString().slice(0, 10), min: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
+  function toMin(t) { if (!t) return 9999; var p = t.split(":"); return +p[0] * 60 + +p[1]; }
+
+  /* ============ 타임라인 ============ */
+  var editing = null; // {d, i}
+  function timeline(d, now, editable) {
+    var dates = tripDates(), date = dates && dates[d];
+    var ul = el("ul", "tl");
+    var isToday = date && now.date === date, isPast = date && now.date > date, curIdx = -1;
+    if (isToday) plan[d].forEach(function (it, i) { if (toMin(it.t) <= now.min) curIdx = i; });
+    plan[d].forEach(function (it, i) {
+      var li = el("li");
+      if (isPast || (isToday && i < curIdx)) li.classList.add("past");
+      if (isToday && i === curIdx) li.classList.add("cur");
+      li.appendChild(el("time", null, it.t || "–"));
+      var w = el("div", "what"), s = el("strong");
+      s.appendChild(el("span", "k " + it.k, KIND[it.k] || "기타"));
+      s.appendChild(document.createTextNode(it.title));
+      w.appendChild(s);
+      if (it.note) w.appendChild(el("small", null, it.note));
+      li.appendChild(w);
+      var ops = el("div", "ops");
+      if (editable) {
+        ops.appendChild(btn("mini", "수정", function () { startEdit(d, i); }));
+        var del = btn("mini danger", "삭제"); del.addEventListener("click", function () { confirmTap(del, "정말?", function () { plan[d].splice(i, 1); savePlan(); renderPlan(); toast("삭제했어요"); }); });
+        ops.appendChild(del);
+      }
+      li.appendChild(ops);
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  /* ============ 오늘 ============ */
+  function renderHero() {
+    $("h-today").textContent = info.title || "후쿠오카 여행";
+    var d = tripDates();
+    $("hero-sub").textContent = d ? dayLabel(0) + " – " + dayLabel(2) : "";
+  }
+  function renderToday() {
+    renderHero();
+    var box = $("today-box"); box.textContent = "";
+    var now = nowJst(), dates = tripDates();
+    if (!dates) {
+      var c0 = el("div", "card empty");
+      c0.appendChild(el("h3", null, "출발일을 넣어 주세요"));
+      c0.appendChild(el("p", "muted", "정보 탭에 출발일을 넣으면 D-day와 \"지금 할 일\"이 나와요. 내 정보는 이 폰에만 저장돼요."));
+      c0.appendChild(btn("btn", "정보 입력하기", function () { go("info"); $("info-edit").open = true; }));
+      box.appendChild(c0);
+      var c1 = el("div", "card");
+      c1.appendChild(el("h3", null, "뭘 할지 고민된다면"));
+      c1.appendChild(el("p", "muted", "가이드 탭에 볼거리, 맛집, 쇼핑, 근교, 11월 한정 정보가 " + G.length + "곳 있어요."));
+      c1.appendChild(btn("btn ghost", "가이드 보기", function () { go("guide"); }));
+      box.appendChild(c1);
+      return;
+    }
+    var card = el("div", "card");
+    if (now.date < dates[0]) {
+      var dd = Math.round((Date.parse(dates[0]) - Date.parse(now.date)) / 864e5);
+      card.appendChild(el("p", "eyebrow", "출발까지"));
+      card.appendChild(el("p", "count", "D-" + dd));
+      var cnt = plan[0].length + plan[1].length + plan[2].length;
+      card.appendChild(el("p", "muted", cnt ? "일정 " + cnt + "개를 짜 뒀어요." : "아직 일정이 비어 있어요."));
+      box.appendChild(card);
+      var todo = checksList().filter(function (c) { return !checks[c.id]; });
+      var nx = el("div", "card");
+      nx.appendChild(el("h3", null, todo.length ? "남은 준비 " + todo.length + "개" : "준비 끝! 🎉"));
+      todo.slice(0, 3).forEach(function (c) { nx.appendChild(el("p", "muted", "· " + c.text)); });
+      if (todo.length) nx.appendChild(btn("btn ghost", "체크리스트 보기", function () { go("info"); }));
+      box.appendChild(nx);
+      return;
+    }
+    var di = dates.indexOf(now.date);
+    if (di < 0) {
+      card.appendChild(el("p", "eyebrow", "여행 끝"));
+      card.appendChild(el("h2", null, "수고했어요! 다음 여행도 같이 짜요 ✈️"));
+      card.appendChild(btn("btn", "쓴 돈 정리 보기", function () { go("money"); }));
+      box.appendChild(card); return;
+    }
+    var cur = null, nxt = null;
+    plan[di].forEach(function (it) { if (toMin(it.t) <= now.min) cur = it; else if (!nxt) nxt = it; });
+    if (cur || nxt) {
+      var nc = el("div", "card now");
+      var line = function (lbl, it) {
+        var w = el("div");
+        w.appendChild(el("p", "label", lbl + (it.t ? " · " + it.t : "")));
+        w.appendChild(el("strong", null, it.title));
+        if (it.note) { var m = el("p", "muted", it.note); m.style.fontSize = "13px"; w.appendChild(m); }
+        return w;
+      };
+      if (cur) nc.appendChild(line("지금", cur));
+      if (nxt && nxt.t) { var left = toMin(nxt.t) - now.min; nc.appendChild(line("다음 (" + (left >= 60 ? Math.floor(left / 60) + "시간 " : "") + (left % 60) + "분 뒤)", nxt)); }
+      else if (nxt) nc.appendChild(line("다음", nxt));
+      box.appendChild(nc);
+    }
+    card.appendChild(el("p", "eyebrow", dayLabel(di)));
+    if (plan[di].length) card.appendChild(timeline(di, now, false));
+    else { card.appendChild(el("p", "muted", "오늘 일정이 비어 있어요.")); card.appendChild(btn("btn ghost", "가이드에서 고르기", function () { go("guide"); })); }
+    box.appendChild(card);
+  }
+
+  /* ============ 일정 탭 ============ */
+  var planDay = null;
+  function renderPlan() {
+    var now = nowJst(), dates = tripDates();
+    if (planDay == null) { planDay = 0; if (dates) dates.forEach(function (d, i) { if (d === now.date) planDay = i; }); }
+    var pick = $("daypick"); pick.textContent = "";
+    [0, 1, 2].forEach(function (i) {
+      var b = btn(null, null, function () { planDay = i; cancelEdit(); renderPlan(); });
+      b.setAttribute("aria-pressed", String(i === planDay));
+      b.appendChild(el("b", null, dayLabel(i))); b.appendChild(el("span", null, plan[i].length + "개"));
+      pick.appendChild(b);
+    });
+    var box = $("plan-box"); box.textContent = "";
+    if (plan[planDay].length) box.appendChild(timeline(planDay, now, true));
+    else box.appendChild(el("p", "muted", "아직 비어 있어요. 아래에서 직접 추가하거나 가이드에서 골라 보세요."));
+    $("tpl-btn").hidden = plan[planDay].length > 0;
+  }
+  function startEdit(d, i) {
+    editing = { d: d, i: i }; var it = plan[d][i], f = $("item-form");
+    f.elements.t.value = it.t || ""; f.elements.k.value = it.k; f.elements.title.value = it.title; f.elements.note.value = it.note || "";
+    $("item-form-title").textContent = "일정 수정"; $("item-submit").textContent = "수정 저장"; $("item-cancel").hidden = false;
+    f.elements.title.focus();
+  }
+  function cancelEdit() {
+    editing = null; $("item-form").reset();
+    $("item-form-title").textContent = "일정 추가"; $("item-submit").textContent = "추가"; $("item-cancel").hidden = true;
+  }
+  $("item-cancel").addEventListener("click", cancelEdit);
+  $("item-form").addEventListener("submit", function (e) {
+    e.preventDefault(); var f = e.target;
+    var it = { t: f.elements.t.value, k: f.elements.k.value, title: f.elements.title.value.trim(), note: f.elements.note.value.trim() };
+    if (!it.title) return;
+    if (editing) { plan[editing.d][editing.i] = it; sortDay(editing.d); toast("수정했어요"); }
+    else { plan[planDay].push(it); sortDay(planDay); toast(dayLabel(planDay) + "에 추가했어요"); }
+    savePlan(); cancelEdit(); renderPlan();
+  });
+  $("tpl-btn").addEventListener("click", function () {
+    plan[planDay] = TPL[planDay].map(function (r) { return { t: r[0], k: r[1], title: r[2], note: r[3] }; });
+    savePlan(); renderPlan(); toast("추천 일정을 넣었어요. 자유롭게 고치세요");
+  });
+
+  /* ============ 가이드 ============ */
+  var gCat = "all";
+  function renderChips() {
+    var c = $("g-chips"); c.textContent = "";
+    CATS.forEach(function (x) {
+      var b = btn(null, x[1], function () { gCat = x[0]; renderChips(); renderGuide(); });
+      b.setAttribute("aria-pressed", String(gCat === x[0])); c.appendChild(b);
+    });
+  }
+  function inPlan(name) { return plan.some(function (d) { return d.some(function (it) { return it.title === name; }); }); }
+  function renderGuide() {
+    var q = $("g-q").value.trim().toLowerCase(), list = $("g-list"); list.textContent = "";
+    var kindOf = { see: "see", eat: "eat", shop: "shop", nov: "see", yufu: "see", trip: "see" };
+    var shown = G.filter(function (g) {
+      if (gCat !== "all" && g[0] !== gCat) return false;
+      if (!q) return true;
+      return (g[1] + g[2] + g[4] + g[5]).toLowerCase().indexOf(q) >= 0;
+    });
+    if (!shown.length) { list.appendChild(el("p", "muted", "찾는 곳이 없어요.")); return; }
+    shown.forEach(function (g) {
+      var c = el("div", "g"), top = el("div", "g-top");
+      top.appendChild(el("strong", null, g[2]));
+      top.appendChild(el("small", null, g[1] + (g[6] ? " · " + g[6] : "")));
+      c.appendChild(top);
+      c.appendChild(el("p", null, g[4]));
+      if (g[5]) c.appendChild(el("p", "gtip", g[5]));
+      var acts = el("div", "acts");
+      var m = el("a", null, "🗺 지도"); m.href = mapUrl(g[3]); m.target = "_blank"; m.rel = "noopener"; acts.appendChild(m);
+      var add = btn(inPlan(g[2]) ? "added" : null, inPlan(g[2]) ? "✓ 일정에 있음" : "+ 일정");
+      add.addEventListener("click", function () {
+        acts.textContent = "";
+        acts.appendChild(el("small", null, "어느 날에?"));
+        [0, 1, 2].forEach(function (d) {
+          acts.appendChild(btn(null, dayLabel(d), function () {
+            var k = kindOf[g[0]] || "see"; if (/(라멘|모츠|미즈타키|덮밥|교자|우동|빵|고로케|롤케이크|치즈|소고기|야키토리|고마사바|포장마차|덴푸라|스시)/.test(g[2])) k = "eat";
+            plan[d].push({ t: "", k: k, title: g[2], note: g[5] || "" }); savePlan();
+            toast(dayLabel(d) + "에 넣었어요. 일정 탭에서 시간을 정하세요"); renderGuide();
+          }));
+        });
+        acts.appendChild(btn(null, "취소", renderGuide));
+      });
+      acts.appendChild(add);
+      c.appendChild(acts);
+      list.appendChild(c);
+    });
+  }
+  $("g-q").addEventListener("input", renderGuide);
+
+  /* ============ 정보 ============ */
+  var SHOW = [];
+  function renderInfo() {
+    var box = $("info-cards"); box.textContent = ""; SHOW = [];
+    var hotels = [
+      { tag: dayLabel(0) + " 숙소", name: info.h1name, ja: info.h1ja || info.h1name, addr: info.h1addr, tel: info.h1tel, note: info.h1note },
+      { tag: dayLabel(1) + " 숙소", name: info.h2name, ja: info.h2ja || info.h2name, addr: info.h2addr, tel: info.h2tel, note: info.h2note }
+    ];
+    var any = false;
+    hotels.forEach(function (h) {
+      if (!h.name && !h.addr) return; any = true;
+      var c = el("div", "card");
+      c.appendChild(el("p", "eyebrow", h.tag));
+      if (h.name) c.appendChild(el("h3", null, h.name));
+      if (h.addr) c.appendChild(el("p", "addr-ja", h.addr));
+      if (h.note) c.appendChild(el("small", null, h.note));
+      var links = el("div", "links");
+      if (h.addr || h.ja) {
+        var idx = SHOW.push({ sub: "ここまでお願いします。", big: [h.ja, h.addr].filter(Boolean).join("\n"), foot: h.tel || "" }) - 1;
+        links.appendChild(btn(null, "🚕 택시 기사님께 보여 주기", function () { show(idx); }));
+        var m = el("a", null, "🗺 지도"); m.href = mapUrl(h.addr || h.ja); m.target = "_blank"; m.rel = "noopener"; links.appendChild(m);
+      }
+      if (h.tel) { var t = el("a", null, "📞 전화"); t.href = "tel:" + h.tel.replace(/[^\d+]/g, ""); links.appendChild(t); }
+      c.appendChild(links); box.appendChild(c);
+    });
+    var tr = [["가는 편", info.go], ["중간 이동", info.mid], ["오는 편", info.back]].filter(function (r) { return r[1]; });
+    if (tr.length) {
+      any = true;
+      var tc = el("div", "card"); tc.appendChild(el("h3", null, "교통"));
+      tr.forEach(function (r) { var row = el("div", "ticket"); row.appendChild(el("b", null, r[0])); row.appendChild(el("span", null, r[1])); tc.appendChild(row); });
+      box.appendChild(tc);
+    }
+    var qc = el("div", "card");
+    qc.appendChild(el("h3", null, "택시에서 쓰는 말"));
+    var ql = el("div", "links");
+    [["유후인역", "由布院駅まで\nお願いします"], ["하카타역", "博多駅まで\nお願いします"], ["공항 국제선", "福岡空港\n国際線ターミナルまで\nお願いします"], ["텐진", "天神まで\nお願いします"]].forEach(function (q) {
+      var i = SHOW.push({ sub: "", big: q[1], foot: "" }) - 1;
+      ql.appendChild(btn(null, "🚕 " + q[0], function () { show(i); }));
+    });
+    qc.appendChild(ql); box.appendChild(qc);
+    if (!any) {
+      var e = el("div", "card empty");
+      e.appendChild(el("p", "muted", "아직 비어 있어요. 아래 \"정보 입력·수정\"에서 숙소와 교통을 넣으면 택시용 주소 카드가 생겨요."));
+      box.insertBefore(e, box.firstChild);
+    }
+  }
+  function show(i) {
+    var s = SHOW[i]; if (!s) return;
+    $("show-sub").textContent = s.sub; $("show-big").textContent = s.big; $("show-foot").textContent = s.foot;
+    var d = $("show"); if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }
+  $("show-close").addEventListener("click", function () { var d = $("show"); if (d.close) d.close(); else d.removeAttribute("open"); });
+
+  function fillForm() { var f = $("info-form"); INFO_KEYS.forEach(function (k) { if (f.elements[k]) f.elements[k].value = info[k] || ""; }); }
+  $("info-form").addEventListener("submit", function (e) {
+    e.preventDefault(); var f = e.target;
+    INFO_KEYS.forEach(function (k) { if (f.elements[k]) info[k] = f.elements[k].value.trim(); });
+    if (LS.set("fk-info", info)) { planDay = null; renderAll(); toast("저장했어요"); }
+  });
+
+  function enc(obj) { var bytes = new TextEncoder().encode(JSON.stringify(obj)), bin = ""; for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return "FK2:" + btoa(bin); }
+  function dec(code) { var m = code.match(/FK2:([A-Za-z0-9+/=\s]+)/); if (!m) throw new Error("bad"); var bin = atob(m[1].replace(/\s+/g, "")), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return JSON.parse(new TextDecoder().decode(bytes)); }
+  function cleanItem(it) { return it && typeof it.title === "string" ? { t: /^\d\d:\d\d$/.test(it.t) ? it.t : "", k: KIND[it.k] ? it.k : "see", title: it.title.slice(0, 60), note: typeof it.note === "string" ? it.note.slice(0, 120) : "" } : null; }
+  $("code-out").addEventListener("click", function () {
+    var text = "후쿠오카 앱 코드 (앱 > 정보 > 불러오기에 붙여 넣기)\n" + enc({ info: info, plan: plan });
+    if (navigator.share) navigator.share({ text: text }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast("복사했어요. 카톡에 붙여 넣으세요"); }, function () { toast("복사하지 못했어요"); });
+  });
+  $("code-load").addEventListener("click", function () {
+    var v = $("code-in").value; if (!v.trim()) return;
+    try {
+      var o = dec(v), ni = {};
+      INFO_KEYS.forEach(function (k) { if (o.info && typeof o.info[k] === "string") ni[k] = o.info[k].slice(0, 120); });
+      var np = [0, 1, 2].map(function (d) { return (o.plan && Array.isArray(o.plan[d]) ? o.plan[d] : []).map(cleanItem).filter(Boolean).slice(0, 60); });
+      info = ni; plan = np; LS.set("fk-info", info); savePlan();
+      fillForm(); $("code-in").value = ""; planDay = null; renderAll(); toast("불러왔어요");
+    } catch (e) { toast("코드가 올바르지 않아요"); }
+  });
+
+  /* ============ 경비 ============ */
+  var money = LS.get("fk-money", null) || { rows: [], rate: 9, budget: null };
+  if (!Array.isArray(money.rows)) money.rows = [];
+  function saveMoney() { LS.set("fk-money", money); }
+  function won(n) { return Math.round(n).toLocaleString("ko-KR") + "원"; }
+  function krw(r) { if (!r || r.actual == null || isNaN(r.actual)) return null; return r.currency === "JPY" ? r.actual * money.rate : r.actual; }
+  function renderSums() {
+    var a = 0, any = false;
+    money.rows.forEach(function (r) { var k = krw(r); if (k != null) { a += k; any = true; } });
+    $("s-plan").textContent = money.budget ? won(money.budget) : "–";
+    $("s-act").textContent = any ? won(a) : "–";
+    var d = $("s-diff"); d.className = "";
+    if (money.budget) { var left = money.budget - a; d.textContent = won(left); d.className = left < 0 ? "over" : "under"; } else d.textContent = "–";
+  }
+  function renderMoney() {
+    $("rate").value = money.rate; $("budget").value = money.budget || "";
+    var list = $("exp-list"); list.textContent = "";
+    if (!money.rows.length) { var e = el("div", "card empty"); e.appendChild(el("p", "muted", "아직 적은 게 없어요. 숙소, 기차표처럼 미리 낸 돈부터 넣어 보세요.")); list.appendChild(e); }
+    money.rows.forEach(function (r, idx) {
+      var row = el("div", "exp-row"), top = el("div", "exp-top");
+      top.appendChild(el("strong", null, r.label));
+      var del = btn("mini danger", "삭제"); del.setAttribute("aria-label", r.label + " 삭제");
+      del.addEventListener("click", function () { confirmTap(del, "정말 삭제", function () { money.rows.splice(idx, 1); saveMoney(); renderMoney(); toast("삭제했어요"); }); });
+      top.appendChild(del);
+      var inr = el("div", "exp-in");
+      var inp = el("input"); inp.type = "number"; inp.inputMode = "numeric"; inp.min = "0"; inp.step = "1"; inp.placeholder = "금액"; inp.setAttribute("aria-label", r.label + " 금액");
+      inp.value = r.actual != null ? r.actual : "";
+      var sel = el("select"); sel.setAttribute("aria-label", r.label + " 통화");
+      [["JPY", "¥"], ["KRW", "₩"]].forEach(function (o) { var op = el("option", null, o[1]); op.value = o[0]; sel.appendChild(op); });
+      sel.value = r.currency || "JPY";
+      inr.appendChild(inp); inr.appendChild(sel);
+      var memo = el("input"); memo.type = "text"; memo.maxLength = 60; memo.placeholder = "메모"; memo.setAttribute("aria-label", r.label + " 메모"); memo.value = r.memo || "";
+      var kr = el("div", "exp-krw"), kv = el("b"); kr.appendChild(el("span", null, "원화")); kr.appendChild(kv);
+      function showK() { var k = krw({ actual: inp.value === "" ? null : +inp.value, currency: sel.value }); kv.textContent = k != null ? won(k) : "–"; }
+      showK();
+      function commit() {
+        r.actual = inp.value.trim() === "" ? null : Math.max(0, Math.round(+inp.value)); r.currency = sel.value; r.memo = memo.value.trim();
+        saveMoney(); showK(); renderSums(); row.classList.add("saved"); setTimeout(function () { row.classList.remove("saved"); }, 800);
+      }
+      inp.addEventListener("input", showK); sel.addEventListener("change", function () { showK(); commit(); });
+      inp.addEventListener("change", commit); memo.addEventListener("change", commit);
+      row.appendChild(top); row.appendChild(inr); row.appendChild(memo); row.appendChild(kr);
+      list.appendChild(row);
+    });
+    renderSums();
+  }
+  $("add-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var label = $("add-label").value.trim(); if (!label) return;
+    var raw = $("add-amount").value.trim();
+    money.rows.unshift({ label: label, actual: raw === "" ? null : Math.max(0, Math.round(+raw)), currency: $("add-cur").value, memo: "" });
+    saveMoney(); $("add-label").value = ""; $("add-amount").value = ""; renderMoney(); toast("추가했어요");
+  });
+  $("rate").addEventListener("change", function () { var v = +$("rate").value; if (!(v > 0)) { $("rate").value = money.rate; return; } money.rate = v; saveMoney(); renderMoney(); });
+  $("budget").addEventListener("change", function () { var v = $("budget").value.trim(); money.budget = v === "" ? null : Math.max(0, Math.round(+v)); saveMoney(); renderSums(); });
+  $("reset-btn").addEventListener("click", function () { var b = $("reset-btn"); confirmTap(b, "정말 지울까요?", function () { money.rows = []; saveMoney(); renderMoney(); b.dataset.c = ""; b.textContent = "모두 지우기"; toast("모두 지웠어요"); }); });
+  $("share-btn").addEventListener("click", function () {
+    var lines = ["[여행 경비] ¥1=" + money.rate + "원"], tot = 0;
+    money.rows.forEach(function (r) { var k = krw(r); if (k == null) return; tot += k;
+      lines.push("· " + r.label + ": " + (r.currency === "JPY" ? "¥" + r.actual.toLocaleString("ko-KR") + " (" + won(k) + ")" : won(k)) + (r.memo ? " - " + r.memo : "")); });
+    lines.push("합계 " + won(tot));
+    var text = lines.join("\n");
+    if (navigator.share) navigator.share({ text: text }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast("복사했어요"); }, function () { toast("복사하지 못했어요"); });
+  });
+
+  /* ============ 체크리스트 ============ */
+  var BASE_CHECKS = [
+    { id: "visit", text: "Visit Japan Web 입국 등록 (QR)" },
+    { id: "yen", text: "엔화 현금 (포장마차·작은 가게는 현금만)" },
+    { id: "esim", text: "eSIM 또는 포켓 와이파이" },
+    { id: "qr", text: "기차·숙소 바우처를 두 사람 폰에 저장" },
+    { id: "checkin", text: "숙소 셀프 체크인 양식 작성" },
+    { id: "clothes", text: "겉옷 (11월 아침저녁 5–10℃)" },
+    { id: "adapter", text: "충전기·보조배터리 (일본은 110V, 11자 플러그)" }
+  ];
+  var checks = LS.get("fk-checks", {});
+  var myChecks = LS.get("fk-mychecks", []);
+  function checksList() { return BASE_CHECKS.concat(myChecks); }
+  function renderChecks() {
+    var ul = $("check-list"); ul.textContent = "";
+    checksList().forEach(function (c) {
+      var li = el("li"), lb = el("label"), cb = el("input"), sp = el("span", null, c.text);
+      cb.type = "checkbox"; cb.checked = !!checks[c.id];
+      cb.onchange = function () { checks[c.id] = cb.checked; LS.set("fk-checks", checks); };
+      lb.appendChild(cb); lb.appendChild(sp); li.appendChild(lb);
+      if (c.mine) { var d = btn("mini danger", "삭제"); d.addEventListener("click", function () { confirmTap(d, "정말?", function () { myChecks = myChecks.filter(function (x) { return x.id !== c.id; }); LS.set("fk-mychecks", myChecks); renderChecks(); }); }); li.appendChild(d); }
+      ul.appendChild(li);
+    });
+  }
+  $("check-form").addEventListener("submit", function (e) {
+    e.preventDefault(); var v = $("check-new").value.trim(); if (!v) return;
+    myChecks.push({ id: "m" + Date.now().toString(36), text: v, mine: true }); LS.set("fk-mychecks", myChecks);
+    $("check-new").value = ""; renderChecks();
+  });
+
+  /* ============ 탭 ============ */
+  var TABS = ["today", "plan", "guide", "money", "info"], curTab = "today";
+  function go(t) {
+    if (TABS.indexOf(t) < 0) t = "today";
+    curTab = t;
+    TABS.forEach(function (x) { $("v-" + x).classList.toggle("on", x === t); });
+    document.querySelectorAll("nav.tabs button").forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === t)); });
+    LS.set("fk-tab", t);
+    if (t === "today") renderToday();
+    if (t === "plan") renderPlan();
+    if (t === "guide") renderGuide();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav.tabs button").forEach(function (b) { b.addEventListener("click", function () { go(b.dataset.tab); }); });
+  function renderAll() { renderHero(); renderInfo(); renderChecks(); renderMoney(); if (curTab === "today") renderToday(); if (curTab === "plan") renderPlan(); if (curTab === "guide") renderGuide(); }
+
+  /* ============ 설치 안내 ============ */
+  var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  var deferred = null;
+  if (!standalone) {
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    $("install-card").hidden = false;
+    $("install-text").textContent = ios
+      ? "사파리 아래쪽 공유 버튼(□↑) → \"홈 화면에 추가\"를 누르면 앱처럼 쓸 수 있어요. 한 번 열어 두면 인터넷이 없어도 열려요."
+      : "크롬 메뉴(⋮) → \"홈 화면에 추가\" 또는 \"앱 설치\"를 누르면 앱처럼 쓸 수 있어요. 한 번 열어 두면 인터넷이 없어도 열려요.";
+  }
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("install-btn").hidden = false; });
+  $("install-btn").addEventListener("click", function () { if (!deferred) return; deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; $("install-btn").hidden = true; }); });
+  window.addEventListener("appinstalled", function () { $("install-card").hidden = true; });
+
+  /* ============ 시작 ============ */
+  renderChips(); fillForm(); renderAll();
+  go(LS.get("fk-tab", "today"));
+  setInterval(function () { if (curTab === "today") renderToday(); }, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && curTab === "today") renderToday(); });
+  if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+</body>
+</html>
