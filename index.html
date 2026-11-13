@@ -98,20 +98,24 @@ input, select, textarea { border: 1px solid var(--line); background: var(--bg); 
 .chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 
 /* 일정 */
-.daypick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.daypick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; margin: -8px 0; }
 .daypick button { padding: 10px 4px; border-radius: 12px; border: 0; background: var(--surface); cursor: pointer; display: grid; box-shadow: 0 1px 0 var(--line); }
 .daypick button b { font-size: 15px; }
 .daypick button span { font-size: 12px; color: var(--muted); }
 .daypick button[aria-pressed="true"] { background: var(--maple); color: #fff; }
 .daypick button[aria-pressed="true"] span { color: #fff; opacity: .85; }
 .tl { list-style: none; margin: 0; padding: 0; display: grid; }
-.tl li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.tl li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: start; }
 .tl li:last-child { border-bottom: 0; }
+.tl li.more { display: block; padding: 6px 0; text-align: center; }
 .tl time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; }
 .tl .what { display: grid; gap: 2px; min-width: 0; }
 .tl li.past { opacity: .45; }
 .tl li.cur { background: var(--maple-soft); margin: 0 -16px; padding-inline: 16px; border-radius: 10px; }
 .tl .ops { display: flex; gap: 4px; }
+.tl li.tap { cursor: pointer; grid-template-columns: 48px minmax(0, 1fr) 14px; }
+.tl li.tap .ops::after { content: "›"; color: var(--muted); font-size: 18px; line-height: 1.2; }
+.tl li.tap:active { background: var(--maple-soft); }
 .k { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; margin-right: 6px; vertical-align: 2px; }
 .k.eat, .k.shop { background: var(--amber-soft); color: var(--amber); }
 .k.see { background: var(--spring-soft); color: var(--spring); }
@@ -238,6 +242,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
         <input class="full" type="text" name="note" maxlength="120" placeholder="메모 (선택)" aria-label="메모">
         <button class="btn full" type="submit" id="item-submit">추가</button>
         <button class="btn ghost full" type="button" id="item-cancel" hidden>수정 취소</button>
+        <button class="btn ghost full" type="button" id="item-del" hidden style="color:var(--maple)">이 일정 삭제</button>
       </form>
     </div>
     <button class="btn ghost" type="button" id="tpl-btn">✨ 이 날에 추천 일정 넣기</button>
@@ -332,6 +337,19 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       </fieldset>
       <button class="btn" type="submit">저장</button>
     </form>
+  </details>
+
+  <details class="card" id="live-card">
+    <summary>👫 같이 보기 (자동 동기화)</summary>
+    <div class="form">
+      <small>둘이 <b>같은 비밀코드</b>를 넣으면 정보와 일정이 자동으로 맞춰져요. 일정은 비밀코드로 잠가서 올라가기 때문에, 코드를 모르면 아무도 못 읽어요. <b>최신 일정을 가진 사람이 먼저 연결</b>하세요.</small>
+      <input type="password" id="live-pass" maxlength="64" placeholder="비밀코드 (8자 이상, 둘만 아는 말)" aria-label="비밀코드" autocomplete="off">
+      <div class="row2">
+        <button class="btn" type="button" id="live-on">연결</button>
+        <button class="btn ghost" type="button" id="live-off">연결 끊기</button>
+      </div>
+      <small id="live-status">연결 안 됨</small>
+    </div>
   </details>
 
   <details class="card" id="sync-card">
@@ -762,9 +780,15 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     var ul = el("ul", "tl");
     var isToday = date && now.date === date, isPast = date && now.date > date, curIdx = -1;
     if (isToday) plan[d].forEach(function (it, i) { if (toMin(it.t) <= now.min) curIdx = i; });
+    var fold = !editable && isToday && curIdx > 1, folded = [];
+    if (fold) {
+      var more = el("li", "more"); more.appendChild(btn("mini", "지난 일정 " + curIdx + "개 보기 ▾", function () { folded.forEach(function (x) { x.hidden = false; }); more.remove(); }));
+      ul.appendChild(more);
+    }
     plan[d].forEach(function (it, i) {
       var li = el("li");
       if (isPast || (isToday && i < curIdx)) li.classList.add("past");
+      if (fold && i < curIdx) { li.hidden = true; folded.push(li); }
       if (isToday && i === curIdx) li.classList.add("cur");
       li.appendChild(el("time", null, it.t || "–"));
       var w = el("div", "what"), s = el("strong");
@@ -775,9 +799,9 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       li.appendChild(w);
       var ops = el("div", "ops");
       if (editable) {
-        ops.appendChild(btn("mini", "수정", function () { startEdit(d, i); }));
-        var del = btn("mini danger", "삭제"); del.addEventListener("click", function () { confirmTap(del, "정말?", function () { plan[d].splice(i, 1); savePlan(); renderPlan(); toast("삭제했어요"); }); });
-        ops.appendChild(del);
+        li.classList.add("tap"); li.tabIndex = 0; li.setAttribute("role", "button"); li.setAttribute("aria-label", (it.t || "") + " " + it.title + " 고치기");
+        li.addEventListener("click", function () { startEdit(d, i); });
+        li.addEventListener("keydown", function (e) { if (e.key === "Enter") startEdit(d, i); });
       }
       li.appendChild(ops); ul.appendChild(li);
     });
@@ -866,7 +890,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     if (planDay == null) { planDay = 0; if (dates) dates.forEach(function (d, i) { if (d === now.date) planDay = i; }); }
     var pick = $("daypick"); pick.textContent = "";
     [0, 1, 2].forEach(function (i) {
-      var b = btn(null, null, function () { planDay = i; cancelEdit(); renderPlan(); });
+      var b = btn(null, null, function () { planDay = i; cancelEdit(); backY = null; renderPlan(); window.scrollTo(0, 0); });
       b.setAttribute("aria-pressed", String(i === planDay));
       b.appendChild(el("b", null, dayLabel(i))); b.appendChild(el("span", null, plan[i].length + "개"));
       pick.appendChild(b);
@@ -882,18 +906,25 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   function startEdit(d, i) {
     editing = { d: d, i: i }; var it = plan[d][i], f = $("item-form");
     f.elements.t.value = it.t || ""; f.elements.k.value = it.k; f.elements.title.value = it.title; f.elements.note.value = it.note || "";
-    $("item-form-title").textContent = "일정 수정"; $("item-submit").textContent = "수정 저장"; $("item-cancel").hidden = false;
+    $("item-form-title").textContent = "일정 수정"; $("item-submit").textContent = "수정 저장"; $("item-cancel").hidden = false; $("item-del").hidden = false;
+    backY = window.scrollY;
     f.scrollIntoView({ behavior: "smooth", block: "center" });
   }
-  function cancelEdit() { editing = null; $("item-form").reset(); $("item-form-title").textContent = "일정 추가"; $("item-submit").textContent = "추가"; $("item-cancel").hidden = true; }
-  $("item-cancel").addEventListener("click", cancelEdit);
+  var backY = null;
+  function cancelEdit() { editing = null; $("item-form").reset(); $("item-form-title").textContent = "일정 추가"; $("item-submit").textContent = "추가"; $("item-cancel").hidden = true; $("item-del").hidden = true; $("item-del").textContent = "이 일정 삭제"; $("item-del").dataset.c = ""; }
+  function goBack() { if (backY != null) { var y = backY; backY = null; setTimeout(function () { window.scrollTo({ top: y, behavior: "smooth" }); }, 50); } }
+  $("item-cancel").addEventListener("click", function () { cancelEdit(); goBack(); });
+  $("item-del").addEventListener("click", function () {
+    var b = $("item-del"); confirmTap(b, "한 번 더 누르면 삭제돼요", function () { if (!editing) return; plan[editing.d].splice(editing.i, 1); savePlan(); cancelEdit(); renderPlan(); toast("삭제했어요"); goBack(); });
+  });
   $("item-form").addEventListener("submit", function (e) {
     e.preventDefault(); var f = e.target;
     var it = { t: f.elements.t.value, k: f.elements.k.value, title: f.elements.title.value.trim(), note: f.elements.note.value.trim() };
     if (!it.title) return;
     if (editing) { plan[editing.d][editing.i] = it; sortDay(editing.d); toast("수정했어요"); }
     else { plan[planDay].push(it); sortDay(planDay); toast(dayLabel(planDay) + "에 추가했어요"); }
-    savePlan(); cancelEdit(); renderPlan();
+    var wasEdit = !!editing;
+    savePlan(); cancelEdit(); renderPlan(); if (wasEdit) goBack();
   });
   $("tpl-btn").addEventListener("click", function () {
     plan[planDay] = TPL[planDay].map(function (r) { return { t: r[0], k: r[1], title: r[2], note: r[3] }; });
@@ -1179,6 +1210,86 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   }
   document.querySelectorAll("nav.tabs button").forEach(function (b) { b.addEventListener("click", function () { go(b.dataset.tab); }); });
   function renderAll() { renderHero(); renderInfo(); renderChecks(); renderMoney(); if (curTab === "today") renderToday(); if (curTab === "plan") setPane(pane); }
+
+  /* ================= 같이 보기 (암호화 동기화) ================= */
+  // 저장소에는 비밀코드로 잠근 글자만 올라가요. 비밀코드는 이 폰에만 있어요.
+  var SYNC_DB = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin : "https://fukuoka-d7920-default-rtdb.asia-southeast1.firebasedatabase.app"; // Firebase Realtime Database 주소 (예: https://xxx-default-rtdb.asia-southeast1.firebasedatabase.app)
+  var live = { pass: LS.get("fk-live", ""), key: null, id: null, ts: LS.get("fk-live-ts", 0), by: LS.get("fk-dev", ""), busy: false, timer: null, push: null, applying: false };
+  if (!live.by) { live.by = Math.random().toString(36).slice(2, 10); LS.set("fk-dev", live.by); }
+  function b64(buf) { var s = "", a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function unb64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  function liveStatus(t) { $("live-status").textContent = t; }
+  function liveUrl() { return SYNC_DB.replace(/\/$/, "") + "/trips/" + live.id + ".json"; }
+  function liveKeys(pass) {
+    var te = new TextEncoder(), cs = crypto.subtle;
+    return cs.digest("SHA-256", te.encode("fk-id:" + pass)).then(function (h) {
+      live.id = Array.prototype.map.call(new Uint8Array(h), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("").slice(0, 40);
+      return cs.importKey("raw", te.encode(pass), "PBKDF2", false, ["deriveKey"]);
+    }).then(function (base) {
+      return cs.deriveKey({ name: "PBKDF2", salt: te.encode("fukuoka-trip-sync-v1"), iterations: 150000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+    }).then(function (k) { live.key = k; });
+  }
+  function livePush() {
+    if (!live.key) return Promise.resolve();
+    var iv = crypto.getRandomValues(new Uint8Array(12)), ts = Date.now();
+    var body = new TextEncoder().encode(JSON.stringify({ info: info, plan: plan }));
+    return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, live.key, body).then(function (ct) {
+      return fetch(liveUrl(), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ts: ts, by: live.by, iv: b64(iv), ct: b64(ct) }) });
+    }).then(function (r) {
+      if (!r.ok) throw new Error("put " + r.status);
+      live.ts = ts; LS.set("fk-live-ts", ts); liveStatus("✅ 연결됨 · 올림 " + new Date(ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }));
+    }).catch(function () { liveStatus("⚠️ 올리지 못했어요. 인터넷이 되면 다시 올려요"); live.dirty = true; });
+  }
+  function liveQueue() { if (!live.key || live.applying) return; clearTimeout(live.push); live.push = setTimeout(livePush, 1500); }
+  function livePull(first) {
+    if (!live.key || live.busy) return Promise.resolve();
+    if (live.dirty) { live.dirty = false; return livePush(); }
+    live.busy = true;
+    return fetch(liveUrl(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("get " + r.status); return r.json(); }).then(function (d) {
+      if (!d) { if (first) return livePush().then(function () { if (!live.dirty) liveStatus("✅ 새로 만들었어요. 상대방도 똑같은 비밀코드로 연결하세요 (한 글자라도 다르면 따로 저장돼요)"); }); return; }
+      if (d.ts <= live.ts && !first) { liveStatus("✅ 연결됨 · 최신 상태"); return; }
+      return crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(d.iv) }, live.key, unb64(d.ct)).then(function (pt) {
+        if (editing || $("info-edit").open) return; // 고치는 중이면 다음에 받아요
+        var o = JSON.parse(new TextDecoder().decode(pt));
+        live.applying = true;
+        try {
+          var ni = {}; INFO_KEYS.forEach(function (k) { if (o.info && typeof o.info[k] === "string") ni[k] = o.info[k].slice(0, 120); });
+          info = ni; LS.set("fk-info", info);
+          if (Array.isArray(o.plan)) { plan = [0, 1, 2].map(function (i) { return (Array.isArray(o.plan[i]) ? o.plan[i] : []).map(cleanItem).filter(Boolean).slice(0, 60); }); savePlan(); }
+          fillForm(); renderAll();
+        } finally { live.applying = false; }
+        live.ts = d.ts; LS.set("fk-live-ts", d.ts);
+        liveStatus("✅ 연결됨 · 받음 " + new Date(d.ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }));
+        if (!first && d.by !== live.by) toast("👫 같이 보는 일정이 바뀌었어요");
+      }, function () { throw new Error("pass"); });
+    }).catch(function (e) {
+      liveStatus(e && e.message === "pass" ? "❌ 비밀코드가 달라요. 상대방과 같은 코드인지 확인하세요" : "⚠️ 인터넷이 안 돼서 이 폰에 저장된 일정을 보여 줘요");
+    }).then(function () { live.busy = false; });
+  }
+  function liveStart(first) {
+    if (!SYNC_DB) { liveStatus("아직 준비 중이에요 (저장소 주소 없음)"); return; }
+    if (!window.crypto || !crypto.subtle) { liveStatus("이 브라우저에서는 쓸 수 없어요"); return; }
+    liveStatus("연결하는 중…");
+    liveKeys(live.pass).then(function () {
+      return livePull(first);
+    }).then(function () {
+      clearInterval(live.timer); live.timer = setInterval(function () { if (!document.hidden) livePull(false); }, 15000);
+    });
+  }
+  // 정보·일정이 저장될 때마다 자동으로 올려요.
+  var lsSet = LS.set;
+  LS.set = function (k, v) { var ok = lsSet(k, v); if (ok && (k === "fk-info" || k === "fk-plan")) liveQueue(); return ok; };
+  $("live-on").addEventListener("click", function () {
+    var p = $("live-pass").value.trim();
+    if (p.length < 8) { toast("비밀코드는 8자 이상으로 해 주세요"); return; }
+    live.pass = p; live.ts = 0; LS.set("fk-live", p); LS.set("fk-live-ts", 0); $("live-pass").value = "";
+    liveStart(true);
+  });
+  $("live-off").addEventListener("click", function () {
+    clearInterval(live.timer); live.key = null; live.pass = ""; LS.set("fk-live", ""); liveStatus("연결 안 됨 (일정은 이 폰에 그대로 있어요)"); toast("연결을 끊었어요");
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && live.key) livePull(false); });
+  if (live.pass) liveStart(false);
 
   /* ================= 설치 안내 ================= */
   var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
