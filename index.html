@@ -53,6 +53,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .view { display: none; gap: 14px; }
 .view.on { display: grid; }
 .card { background: var(--surface); border-radius: 16px; padding: 16px; display: grid; gap: 10px; min-width: 0; box-shadow: 0 1px 0 var(--line); }
+details.card:not([open]) { display: block; }
 .card.line { border: 1px dashed var(--line); box-shadow: none; background: transparent; }
 .card.hot { background: var(--maple-soft); }
 .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .05em; color: var(--maple); }
@@ -181,6 +182,7 @@ details summary { cursor: pointer; font-weight: 700; list-style: none; display: 
 details summary::after { content: "펼치기 ▾"; font-weight: 400; font-size: 13px; color: var(--muted); }
 details[open] summary::after { content: "접기 ▴"; }
 details[open] summary { margin-bottom: 10px; }
+.sect { margin: 14px 4px 0; font-size: 15px; color: var(--muted); }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
 
 /* 크게 보기 */
@@ -219,13 +221,14 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <h3>📲 홈 화면에 추가하기</h3>
     <p id="install-text" class="muted"></p>
     <button class="btn" id="install-btn" hidden>앱 설치</button>
+    <button class="mini" type="button" id="install-x" style="justify-self:start">이미 했어요 · 닫기</button>
   </div>
 </section>
 
 <!-- ================= 일정 ================= -->
 <section class="view" id="v-plan" aria-labelledby="h-plan">
   <h2 id="h-plan" class="sr-only" hidden>일정</h2>
-  <div class="seg" role="group" aria-label="보기 선택">
+  <div class="seg" role="group" aria-label="보기 선택" hidden>
     <button type="button" id="seg-plan" aria-pressed="true">📅 내 일정</button>
     <button type="button" id="seg-guide" aria-pressed="false">📍 가이드</button>
   </div>
@@ -246,9 +249,11 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       </form>
     </div>
     <button class="btn ghost" type="button" id="tpl-btn">✨ 이 날에 추천 일정 넣기</button>
+    <button class="btn ghost" type="button" id="to-guide">📍 가이드에서 장소 골라 넣기</button>
   </div>
 
   <div id="guide-pane" style="display:grid;gap:12px" hidden>
+    <button class="btn ghost" type="button" id="to-plan" style="justify-self:start">← 내 일정으로</button>
     <input type="search" id="g-q" placeholder="🔍 검색 (라멘, 단풍, 신사…)" aria-label="가이드 검색">
     <div class="chips" role="group" aria-label="분류" id="g-chips"></div>
     <div id="g-list" style="display:grid;gap:8px"></div>
@@ -306,6 +311,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   <h2 id="h-info">내 여행 정보</h2>
   <div id="info-cards" style="display:grid;gap:14px"></div>
 
+  <h3 class="sect">⚙️ 설정 · 준비</h3>
   <details class="card" id="info-edit">
     <summary>✏️ 정보 입력·수정</summary>
     <form class="form" id="info-form" autocomplete="off">
@@ -364,14 +370,14 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     </div>
   </details>
 
-  <div class="card">
-    <h3>✅ 준비물 체크</h3>
+  <details class="card" id="check-card">
+    <summary>✅ 준비물 체크</summary>
     <ul class="check" id="check-list"></ul>
     <form class="addbox" id="check-form" style="grid-template-columns:minmax(0,1fr) auto">
       <input type="text" id="check-new" maxlength="60" placeholder="체크할 것 추가" aria-label="체크할 것" required>
       <button class="btn" type="submit">추가</button>
     </form>
-  </div>
+  </details>
 </section>
 
 </main>
@@ -871,6 +877,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       if (t === "calc") { go("money"); $("c-jpy").focus(); return; }
       go("info");
       var target = $(t === "taxi" ? "taxi-card" : "sos-card");
+      if (target) target.open = true;
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
@@ -885,6 +892,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   }
   $("seg-plan").addEventListener("click", function () { setPane("plan"); });
   $("seg-guide").addEventListener("click", function () { setPane("guide"); });
+  $("to-guide").addEventListener("click", function () { setPane("guide"); window.scrollTo(0, 0); });
+  $("to-plan").addEventListener("click", function () { setPane("plan"); window.scrollTo(0, 0); });
   function renderPlan() {
     var now = nowJst(), dates = tripDates();
     if (planDay == null) { planDay = 0; if (dates) dates.forEach(function (d, i) { if (d === now.date) planDay = i; }); }
@@ -899,7 +908,6 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     if (plan[planDay].length) box.appendChild(timeline(planDay, now, true));
     else {
       box.appendChild(el("p", "muted", "아직 비어 있어요."));
-      box.appendChild(btn("btn ghost", "📍 가이드에서 고르기", function () { setPane("guide"); }));
     }
     $("tpl-btn").hidden = plan[planDay].length > 0;
   }
@@ -981,7 +989,9 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 
   /* ================= 정보 ================= */
   function renderInfo() {
-    var box = $("info-cards"); box.textContent = "";
+    var box = $("info-cards");
+    var wasOpen = { taxi: !!($("taxi-card") && $("taxi-card").open), sos: !!($("sos-card") && $("sos-card").open) };
+    box.textContent = "";
     var hotels = [
       { tag: dayLabel(0) + " 숙소", name: info.h1name, ja: info.h1ja || info.h1name, addr: info.h1addr, tel: info.h1tel, note: info.h1note },
       { tag: dayLabel(1) + " 숙소", name: info.h2name, ja: info.h2ja || info.h2name, addr: info.h2addr, tel: info.h2tel, note: info.h2note }
@@ -1014,8 +1024,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       box.appendChild(tc);
     }
     // 장소 목록 (택시 카드)
-    var qc = el("div", "card"); qc.id = "taxi-card";
-    qc.appendChild(el("h3", null, "🚕 장소 목록"));
+    var qc = el("details", "card"); qc.id = "taxi-card";
+    qc.appendChild(el("summary", null, "🚕 택시 장소 목록"));
     qc.appendChild(el("small", null, "누르면 기사님께 보여 줄 택시 카드가 크게 떠요."));
     var mine = hotels.filter(function (h) { return h.ja || h.addr; }).map(function (h) { return { ko: h.name || h.tag, ja: h.ja, addr: h.addr, tel: h.tel }; });
     var groups = [["내 숙소", mine], ["내가 추가한 곳", myPlaces]].concat(PLACES);
@@ -1044,8 +1054,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     det.appendChild(pf); qc.appendChild(det);
     box.appendChild(qc);
 
-    var ec = el("div", "card"); ec.id = "sos-card";
-    ec.appendChild(el("h3", null, "🆘 지진 났을 때"));
+    var ec = el("details", "card"); ec.id = "sos-card";
+    ec.appendChild(el("summary", null, "🆘 지진·긴급 연락처"));
     var ol = el("ol", "steps");
     ["흔들리는 동안: 머리를 가방·베개로 보호하고 탁자 밑으로. 밖으로 뛰어나가지 않기.",
      "온천·욕실이면: 바닥이 미끄러우니 일어서지 말고 머리 보호. 유리창에서 떨어지기.",
@@ -1062,6 +1072,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     ec.appendChild(el("small", null, "171: 재해용 전언 다이얼 (가족에게 안부 남기기)"));
     ec.appendChild(btn("btn ghost", "💬 긴급 회화 보기", function () { pCat = "긴급"; go("talk"); }));
     box.appendChild(ec);
+    qc.open = wasOpen.taxi; ec.open = wasOpen.sos;
   }
   function taxi(p) {
     var ja = [p.ja, p.addr].filter(Boolean).join("\n");
@@ -1294,7 +1305,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   /* ================= 설치 안내 ================= */
   var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   var deferred = null;
-  if (!standalone) {
+  if (!standalone && !LS.get("fk-noinstall", false)) {
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     $("install-card").hidden = false;
     $("install-text").textContent = ios
@@ -1303,6 +1314,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   }
   window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; $("install-btn").hidden = false; });
   $("install-btn").addEventListener("click", function () { if (!deferred) return; deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; $("install-btn").hidden = true; }); });
+  $("install-x").addEventListener("click", function () { LS.set("fk-noinstall", true); $("install-card").hidden = true; });
   window.addEventListener("appinstalled", function () { $("install-card").hidden = true; });
 
   /* ================= 시작 ================= */
